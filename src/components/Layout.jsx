@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import NavBar from './NavBar';
+import Footer from './Footer';
 
 const Layout = () => {
   return (
@@ -8,9 +9,7 @@ const Layout = () => {
       <main className="flex-grow pb-16 pt-20">
         <Outlet />
       </main>
-      <footer className="py-6 text-center text-sm font-semibold tracking-widest text-zinc-500 uppercase bg-zinc-200 mt-auto">
-        MATCHA
-      </footer>
+      <Footer />
     </div>
   );
 };
