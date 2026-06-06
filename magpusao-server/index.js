@@ -22,7 +22,7 @@ app.use(
 );
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Magpusao API is running' });
+  res.json({ status: 'ok', service: 'magpusao-server' });
 });
 
 const initializeDatabase = async () => {
