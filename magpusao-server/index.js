@@ -7,6 +7,8 @@ const userRoutes = require('./routes/userRoutes');
 const articleRoutes = require('./routes/articleRoutes');
 
 const app = express();
+let isInitialized = false;
+let initializationPromise;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -19,12 +21,37 @@ app.use(
   }),
 );
 
-app.use('/api/users', userRoutes);
-app.use('/api/articles', articleRoutes);
-
 app.get('/', (req, res) => {
   res.json({ message: 'Magpusao API is running' });
 });
+
+const initializeDatabase = async () => {
+  if (isInitialized) {
+    return;
+  }
+
+  if (!initializationPromise) {
+    initializationPromise = (async () => {
+      await connectDB();
+      await seedDatabase();
+      isInitialized = true;
+    })();
+  }
+
+  await initializationPromise;
+};
+
+app.use(async (req, res, next) => {
+  try {
+    await initializeDatabase();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.use('/api/users', userRoutes);
+app.use('/api/articles', articleRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -34,9 +61,15 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 8000;
 
 const startServer = async () => {
-  await connectDB();
-  await seedDatabase();
+  await initializeDatabase();
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 };
 
-startServer();
+if (require.main === module) {
+  startServer().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
+
+module.exports = app;
