@@ -1,0 +1,7 @@
+magpusao-client/.git-nested-backup/
+magpusao-client/magpusao-server/
+magpusao-client/node_modules/
+magpusao-client/dist/
+magpusao-client/.env
+magpusao-client/.env.*
+magpusao-client/*.log
