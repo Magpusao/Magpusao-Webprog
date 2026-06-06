@@ -1,0 +1,3 @@
+[submodule "magpusao-client"]
+	path = magpusao-client
+	url = https://github.com/Magpusao/Magpusao-Webprog.git
