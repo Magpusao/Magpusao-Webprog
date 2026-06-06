@@ -12,12 +12,25 @@ let initializationPromise;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://magpusao-client.vercel.app',
+];
+
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked origin: ${origin}`));
+    },
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   }),
 );
 
@@ -35,7 +48,10 @@ const initializeDatabase = async () => {
       await connectDB();
       await seedDatabase();
       isInitialized = true;
-    })();
+    })().catch((error) => {
+      initializationPromise = undefined;
+      throw error;
+    });
   }
 
   await initializationPromise;
@@ -52,24 +68,22 @@ app.use(async (req, res, next) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/articles', articleRoutes);
+app.use('/users', userRoutes);
+app.use('/articles', articleRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Server Error' });
+  res.status(500).json({ message: err.message || 'Server Error' });
 });
 
 const PORT = process.env.PORT || 8000;
 
-const startServer = async () => {
-  await initializeDatabase();
+const startServer = () => {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 };
 
 if (require.main === module) {
-  startServer().catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+  startServer();
 }
 
 module.exports = app;
